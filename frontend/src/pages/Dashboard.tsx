@@ -19,7 +19,8 @@ export function Dashboard() {
   } = useDashboardData();
 
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
-  const [collectionName, setCollectionName] = useState('document_chunks');
+  // const [collectionName, setCollectionName] = useState('document_chunks');
+  const [collectionName, _] = useState('document_chunks');
 
   useEffect(() => {
     document.title = 'Agentic Document Assistant';
