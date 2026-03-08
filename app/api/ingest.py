@@ -23,7 +23,8 @@ async def ingest_document(request: IngestRequest):
         # Create job in MongoDB
         job_id = await mongodb.create_job(
             file_name=request.file_name,
-            file_content_base64=request.file_content_base64
+            file_content_base64=request.file_content_base64,
+            collection_name=request.collection_name
         )
         
         log_response(202, "/ingest", job_id=str(job_id))

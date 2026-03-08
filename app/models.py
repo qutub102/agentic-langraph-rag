@@ -20,6 +20,21 @@ class IngestRequest(BaseModel):
     """Request model for document ingestion."""
     file_name: str = Field(..., description="Name of the file to ingest")
     file_content_base64: str = Field(..., description="Base64 encoded file content")
+    collection_name: str = Field(
+        default="resume_chunks", 
+        description="Name of the Qdrant collection to store vectors in"
+    )
+
+    @field_validator('collection_name')
+    @classmethod
+    def validate_collection_name(cls, v: str) -> str:
+        if not v or not v.strip():
+            raise ValueError("collection_name cannot be empty")
+        # Ensure it contains only alphanumeric characters, underscores, or dashes (Qdrant rules)
+        import re
+        if not re.match(r"^[a-zA-Z0-9_-]+$", v):
+            raise ValueError("collection_name must contain only alphanumeric characters, underscores, or dashes")
+        return v.strip()
 
     @field_validator('file_name')
     @classmethod
@@ -76,6 +91,17 @@ class Citation(BaseModel):
 class ChatRequest(BaseModel):
     """Request model for chat endpoint."""
     question: str = Field(..., max_length=1000, description="User question (max 1000 chars)")
+    collection_name: str = Field(
+        default="resume_chunks", 
+        description="Name of the Qdrant collection to search vectors in"
+    )
+
+    @field_validator('collection_name')
+    @classmethod
+    def validate_collection_name(cls, v: str) -> str:
+        if not v or not v.strip():
+            raise ValueError("collection_name cannot be empty")
+        return v.strip()
 
     @field_validator('question')
     @classmethod
@@ -90,7 +116,7 @@ class ChatRequest(BaseModel):
 class ChatResponse(BaseModel):
     """Response model for chat endpoint."""
     answer: str = Field(..., max_length=1500, description="Answer text (max 1500 chars)")
-    citations: List[Citation] = Field(..., min_length=1, description="List of citations (at least 1 required)")
+    citations: List[Citation] = Field(default_factory=list, description="List of citations")
     confidence: Literal["LOW", "MEDIUM", "HIGH"] = Field(..., description="Confidence level")
 
     @field_validator('answer')
@@ -98,11 +124,4 @@ class ChatResponse(BaseModel):
     def validate_answer_length(cls, v: str) -> str:
         if len(v) > 1500:
             return v[:1500]
-        return v
-
-    @field_validator('citations')
-    @classmethod
-    def validate_citations(cls, v: List[Citation]) -> List[Citation]:
-        if len(v) < 1:
-            raise ValueError("At least one citation is required")
         return v

@@ -4,11 +4,12 @@ import { api } from '../services/api';
 import './DocumentUpload.css';
 
 interface DocumentUploadProps {
+  collectionName: string;
   onUploadSuccess: (jobId: string) => void;
   onError: (error: Error) => void;
 }
 
-export function DocumentUpload({ onUploadSuccess, onError }: DocumentUploadProps) {
+export function DocumentUpload({ collectionName, onUploadSuccess, onError }: DocumentUploadProps) {
   const [file, setFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -36,7 +37,7 @@ export function DocumentUpload({ onUploadSuccess, onError }: DocumentUploadProps
 
     try {
       setUploading(true);
-      const response = await api.ingest(file);
+      const response = await api.ingest(file, collectionName);
       onUploadSuccess(response.job_id);
       setFile(null);
       if (fileInputRef.current) {

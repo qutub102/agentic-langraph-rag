@@ -19,6 +19,7 @@ export function Dashboard() {
   } = useDashboardData();
 
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
+  const [collectionName, setCollectionName] = useState('document_chunks');
 
   useEffect(() => {
     document.title = 'Agentic Document Assistant';
@@ -52,9 +53,23 @@ export function Dashboard() {
         </div>
       )}
 
+      {/* <div className="collection-selector">
+        <label htmlFor="collection-name">Active Collection: </label>
+        <input
+          id="collection-name"
+          type="text"
+          value={collectionName}
+          onChange={(e) => setCollectionName(e.target.value)}
+          placeholder="e.g. resumes, docs, knowledge_base"
+          pattern="[a-zA-Z0-9_-]+"
+          title="Only alphanumeric characters, underscores, and dashes allowed"
+        />
+      </div> */}
+
       <main className="dashboard-content">
         <div className="dashboard-section">
           <DocumentUpload
+            collectionName={collectionName}
             onUploadSuccess={handleUploadSuccess}
             onError={handleUploadError}
           />
@@ -71,6 +86,7 @@ export function Dashboard() {
 
         <div className="dashboard-section">
           <ChatInterface
+            collectionName={collectionName}
             onSubmit={submitQuestion}
             response={chatResponse}
             loading={chatLoading}

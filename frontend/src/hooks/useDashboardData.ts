@@ -7,7 +7,7 @@ export function useDashboardData() {
   const [jobs, setJobs] = useState<Job[]>([]);
   const [jobsLoading, setJobsLoading] = useState(true);
   const [jobsError, setJobsError] = useState<Error | null>(null);
-  
+
   const [chatResponse, setChatResponse] = useState<ChatResponse | null>(null);
   const [chatLoading, setChatLoading] = useState(false);
   const [chatError, setChatError] = useState<Error | null>(null);
@@ -30,12 +30,12 @@ export function useDashboardData() {
     }
   };
 
-  const submitQuestion = async (question: string) => {
+  const submitQuestion = async (question: string, collectionName: string) => {
     try {
       setChatLoading(true);
       setChatError(null);
       setChatResponse(null);
-      const response = await api.chat(question);
+      const response = await api.chat(question, collectionName);
       setChatResponse(response);
     } catch (err) {
       setChatError(err as Error);

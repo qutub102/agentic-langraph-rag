@@ -40,7 +40,7 @@ class ApiClient {
     );
   }
 
-  async ingest(file: File): Promise<IngestResponse> {
+  async ingest(file: File, collectionName: string): Promise<IngestResponse> {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.onload = async () => {
@@ -51,6 +51,7 @@ class ApiClient {
           const response = await this.client.post<IngestResponse>('/ingest', {
             file_name: file.name,
             file_content_base64: base64Content,
+            collection_name: collectionName,
           });
           resolve(response.data);
         } catch (error) {
@@ -72,9 +73,10 @@ class ApiClient {
     return response.data;
   }
 
-  async chat(question: string): Promise<ChatResponse> {
+  async chat(question: string, collectionName: string): Promise<ChatResponse> {
     const response = await this.client.post<ChatResponse>('/chat', {
       question,
+      collection_name: collectionName,
     });
     return response.data;
   }

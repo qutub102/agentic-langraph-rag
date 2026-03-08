@@ -12,6 +12,7 @@ from app.utils.logging import logger
 class AgentState(TypedDict):
     """State for LangGraph agent workflow."""
     question: str
+    collection_name: str
     iteration_count: int
     retrieved_chunks: List[Dict[str, str]]
     answer: str
@@ -66,8 +67,10 @@ class LangGraphAgent:
             query_embedding = embeddings[0][1]
             
             # Search Qdrant
+            collection_name = state.get("collection_name", qdrant_service.COLLECTION_NAME)
             chunks = await qdrant_service.search_chunks(
                 query_embedding=query_embedding,
+                collection_name=collection_name,
                 top_k=8,
                 limit=8
             )
@@ -88,7 +91,7 @@ class LangGraphAgent:
             
             if not chunks:
                 state["answer"] = "I am sorry, I do not have an answer to it."
-                state["citations"] = []
+                state["citations"] = [{"chunk_id": "", "source": "", "quote": ""}]
                 state["confidence"] = "LOW"
                 return state
             
@@ -114,7 +117,7 @@ class LangGraphAgent:
         except Exception as e:
             logger.error(f"Error in reason node: {str(e)}")
             state["answer"] = "I encountered an error processing your question. Please try again."
-            state["citations"] = []
+            state["citations"] = [{"chunk_id": "", "source": "", "quote": ""}]
             state["confidence"] = "LOW"
         
         return state
@@ -138,18 +141,20 @@ class LangGraphAgent:
         
         return "end"
     
-    async def process_question(self, question: str) -> Dict:
+    async def process_question(self, question: str, collection_name: str = qdrant_service.COLLECTION_NAME) -> Dict:
         """
         Process a question through the LangGraph workflow.
         
         Args:
             question: User question
+            collection_name: Name of the Qdrant collection to search in
             
         Returns:
             Dictionary with answer, citations, and confidence
         """
         initial_state: AgentState = {
             "question": question,
+            "collection_name": collection_name,
             "iteration_count": 0,
             "retrieved_chunks": [],
             "answer": "",

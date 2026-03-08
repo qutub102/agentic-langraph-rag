@@ -6,21 +6,22 @@ import { CitationList } from './CitationList';
 import './ChatInterface.css';
 
 interface ChatInterfaceProps {
-  onSubmit: (question: string) => Promise<void>;
+  collectionName: string;
+  onSubmit: (question: string, collectionName: string) => Promise<void>;
   response: ChatResponse | null;
   loading: boolean;
   error: Error | null;
 }
 
-export function ChatInterface({ onSubmit, response, loading, error }: ChatInterfaceProps) {
+export function ChatInterface({ collectionName, onSubmit, response, loading, error }: ChatInterfaceProps) {
   const [question, setQuestion] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!question.trim() || loading) {
+    if (!question.trim() || loading || !collectionName.trim()) {
       return;
     }
-    await onSubmit(question.trim());
+    await onSubmit(question.trim(), collectionName.trim());
     setQuestion('');
   };
 
@@ -68,7 +69,7 @@ export function ChatInterface({ onSubmit, response, loading, error }: ChatInterf
         <div className="error-message">
           <p>{error.message}</p>
           <button
-            onClick={() => onSubmit(question)}
+            onClick={() => onSubmit(question, collectionName)}
             className="retry-button"
           >
             Retry
