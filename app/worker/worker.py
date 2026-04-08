@@ -22,6 +22,7 @@ class Worker:
         job_id = UUID(job["job_id"])
         file_name = job["file_name"]
         file_content_base64 = job["file_content_base64"]
+        collection_name = job.get("collection_name", qdrant_service.COLLECTION_NAME)
         
         log_job_event(str(job_id), "PROCESSING_STARTED", file_name=file_name)
         
@@ -57,7 +58,7 @@ class Worker:
             ]
             
             # Store in Qdrant
-            await qdrant_service.store_chunks(qdrant_chunks)
+            await qdrant_service.store_chunks(qdrant_chunks, collection_name=collection_name)
             
             log_job_event(str(job_id), "QDRANT_STORED", chunk_count=len(qdrant_chunks))
             

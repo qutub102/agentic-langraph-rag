@@ -5,6 +5,7 @@ export type JobStatus = "PENDING" | "PROCESSING" | "COMPLETED" | "FAILED";
 export interface IngestRequest {
   file_name: string;
   file_content_base64: string;
+  collection_name: string;
 }
 
 export interface IngestResponse {
@@ -35,6 +36,7 @@ export interface Citation {
 
 export interface ChatRequest {
   question: string;
+  collection_name: string;
 }
 
 export interface ChatResponse {

@@ -31,29 +31,35 @@ class QdrantService:
             timeout=60.0
         )
         
-        # Create collection if it doesn't exist
+    async def ensure_collection(self, collection_name: str):
+        """Ensure a collection exists, creating it if necessary."""
+        if not self.client:
+            await self.connect()
+            
         collections = await self.client.get_collections()
         collection_names = [col.name for col in collections.collections]
         
-        if self.COLLECTION_NAME not in collection_names:
+        if collection_name not in collection_names:
             await self.client.create_collection(
-                collection_name=self.COLLECTION_NAME,
+                collection_name=collection_name,
                 vectors_config=VectorParams(
                     size=self.VECTOR_SIZE,
                     distance=Distance.COSINE
                 )
             )
-            logger.info(f"Created Qdrant collection: {self.COLLECTION_NAME}")
+            logger.info(f"Created Qdrant collection: {collection_name}")
     
     async def store_chunks(
         self,
-        chunks: List[Tuple[str, str, List[float], str]]
+        chunks: List[Tuple[str, str, List[float], str]],
+        collection_name: str = COLLECTION_NAME
     ) -> bool:
         """
         Store document chunks in Qdrant.
         
         Args:
             chunks: List of (chunk_id, chunk_text, embedding, source_filename) tuples
+            collection_name: Qdrant collection name
             
         Returns:
             True if successful
@@ -78,8 +84,10 @@ class QdrantService:
                 )
                 points.append(point)
             
+            await self.ensure_collection(collection_name)
+            
             await self.client.upsert(
-                collection_name=self.COLLECTION_NAME,
+                collection_name=collection_name,
                 points=points
             )
             
@@ -93,6 +101,7 @@ class QdrantService:
     async def search_chunks(
         self,
         query_embedding: List[float],
+        collection_name: str = COLLECTION_NAME,
         top_k: int = 8,
         limit: int = 8
     ) -> List[dict]:
@@ -101,17 +110,22 @@ class QdrantService:
         
         Args:
             query_embedding: Query embedding vector
+            collection_name: Qdrant collection name
             top_k: Number of results to return
             limit: Maximum number of results
+            score_threshold: Minimum similarity score for chunks to be considered relevant
             
         Returns:
             List of chunk dictionaries with text, source, chunk_id, and score
         """
         try:
+            # We don't automatically create the collection here, but we check if it exists implicitly by querying it.
+            # If it doesn't exist, qdrant-client will raise an error which we catch.
             results = await self.client.search(
-                collection_name=self.COLLECTION_NAME,
+                collection_name=collection_name,
                 query_vector=query_embedding,
-                limit=min(top_k, limit)
+                limit=min(top_k, limit),
+                score_threshold=0.25
             )
             
             chunks = []

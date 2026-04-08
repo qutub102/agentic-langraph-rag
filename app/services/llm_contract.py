@@ -18,7 +18,8 @@ TIMEOUT_SECONDS = 30.0
 class LLMContractService:
     """Service for LLM interaction with strict contract enforcement."""
     
-    SYSTEM_INSTRUCTIONS = """You are a precise document Q&A assistant. Answer questions strictly using only the provided document chunks. 
+    SYSTEM_INSTRUCTIONS = """You are a precise document Q&A assistant. Answer questions strictly using ONLY the provided document chunks.
+If the chunks do not contain the answer, you MUST NOT use your internal knowledge.
 You must cite specific quotes from the chunks in your response. Output valid JSON matching the required schema. Use rich markdown formatting (like bullet points, bold text, and numbered lists) to make your answer detailed, structured, and easy to read."""
     
     @staticmethod
@@ -28,7 +29,7 @@ You must cite specific quotes from the chunks in your response. Output valid JSO
         for i, chunk in enumerate(chunks, 1):
             formatted.append(
                 f"Chunk {i} (ID: {chunk['chunk_id']}, Source: {chunk['source']}):\n"
-                f"{chunk['content'][:2000]}\n"
+                f"{chunk['content']}\n"
             )
         return "\n".join(formatted)
     
@@ -43,11 +44,11 @@ Retrieved Document Chunks:
 {formatted_chunks}
 
 Instructions:
-- Answer the question using ONLY information from the provided chunks
-- Provide a detailed and comprehensive answer, capturing the full detail present in the chunks
-- Use markdown formatting (e.g., bullet points, numbered lists, bold text, line breaks) to structure your response clearly and exactly reproduce lists found in the text
-- If the answer cannot be determined from the chunks, set confidence to LOW and output exactly "I am sorry, I do not have an answer to it".
-- Include at least one citation with a direct quote from a relevant chunk
+- Answer the question using ONLY information from the provided chunks. Do NOT use your own knowledge.
+- Provide a detailed and comprehensive answer, capturing the full detail present in the chunks.
+- Use markdown formatting (e.g., bullet points, numbered lists, bold text, line breaks) to structure your response clearly and exactly reproduce lists found in the text.
+- CRITICAL: If the answer cannot be determined purely from the provided chunks, you MUST set confidence to LOW and output EXACTLY "I am sorry, I do not have an answer to it" in the "answer" field.
+- Include at least one citation with a direct quote from a relevant chunk.
 - Output valid JSON matching this exact schema:
 {{
   "answer": "string (markdown formatted text up to 1500 chars)",

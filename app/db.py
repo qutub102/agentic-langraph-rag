@@ -40,12 +40,13 @@ class MongoDB:
         if self.client:
             self.client.close()
     
-    async def create_job(self, file_name: str, file_content_base64: str) -> UUID:
+    async def create_job(self, file_name: str, file_content_base64: str, collection_name: str) -> UUID:
         """Create a new ingestion job."""
         job_id = uuid4()
         job_doc = {
             "job_id": str(job_id),
             "file_name": file_name,
+            "collection_name": collection_name,
             "status": JobStatus.PENDING.value,
             "created_at": datetime.utcnow(),
             "updated_at": datetime.utcnow(),
@@ -59,7 +60,7 @@ class MongoDB:
             return job_id
         except DuplicateKeyError:
             # Retry with new UUID if collision (extremely rare)
-            return await self.create_job(file_name, file_content_base64)
+            return await self.create_job(file_name, file_content_base64, collection_name)
     
     async def get_job(self, job_id: UUID) -> Optional[dict]:
         """Get job by ID."""

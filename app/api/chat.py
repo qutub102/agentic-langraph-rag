@@ -19,7 +19,10 @@ async def chat(request: ChatRequest):
     
     try:
         # Invoke LangGraph workflow
-        result = await langgraph_agent.process_question(request.question)
+        result = await langgraph_agent.process_question(
+            question=request.question,
+            collection_name=request.collection_name
+        )
         
         # Convert to response model
         citations = [

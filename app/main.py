@@ -14,7 +14,7 @@ from app.services.qdrant import qdrant_service
 from app.utils.logging import logger
 from app.worker.worker import worker
 
-origin=os.getenv("VITE_FRONTEND_BASE_URL")
+origins=os.getenv("VITE_FRONTEND_BASE_URL").split(";")
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -63,7 +63,7 @@ app = FastAPI(
 # Configure CORS for React frontend
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[origin],  # Vite default ports
+    allow_origins=origins,  # Vite default ports
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
